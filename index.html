@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth text-[16px] md:text-[18px]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>привиди всесвіту: літопис ультрадифузних галактик</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=lora:ital,wght@0,400;0,700;1,400&family=pt+serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: parchment paper and old ink (warm beige background #f7f5f0, deep charcoal text #2c2825, faded sepia accents #8b7d6b, ethereal blue for charts #546a76) -->
+    <!-- Application Structure Plan: the structure is designed as a digital broadsheet or a scholar's scroll. it uses a linear, long-scroll narrative to guide the reader through complex astronomical concepts step-by-step, mimicking the flow of an in-depth literary essay. interactive charts and tabbed sections break the walls of text, allowing users to compare data actively rather than just reading it. a glossary at the bottom provides immediate definitions without navigating away, supporting continuous reading. this serves the goal of deep understanding through narrative engagement. -->
+    <!-- Visualization & Content Choices: 
+        1. sizes and masses: goal - compare udg with milky way and dwarfs. method - bar chart (chart.js). justification - bar charts are clearest for magnitude comparisons of disparate entities. 
+        2. dark matter paradox: goal - show the extremes in dark matter content among udgs. method - side-by-side doughnut charts (chart.js). justification - effectively shows proportions (baryonic vs dark matter) visually reinforcing the "ghostly" nature.
+        3. evolutionary theories: goal - present contrasting scientific models. method - interactive tabs. justification - prevents information overload, allowing the user to focus on one theory at a time.
+        library/method: vanilla js, chart.js on canvas. 
+        no svg/mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'pt serif', serif;
+            background-color: #f7f5f0;
+            color: #2c2825;
+            text-transform: lowercase; /* strict enforcement of the lowercase rule */
+        }
+        h1, h2, h3, h4, h5, h6, .display-font {
+            font-family: 'lora', serif;
+        }
+        .newspaper-border {
+            border-bottom: 4px double #2c2825;
+            border-top: 4px double #2c2825;
+        }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 45vh; 
+            max-height: 500px;
+            min-height: 300px;
+        }
+        
+        @media (min-width: 768px) { 
+            .chart-container { 
+                height: 50vh; 
+            } 
+        }
+
+        .first-letter-drop::first-letter {
+            font-size: 3.5rem;
+            float: left;
+            margin-right: 0.5rem;
+            line-height: 1;
+            font-weight: bold;
+            color: #8b7d6b;
+            font-family: 'lora', serif;
+        }
+
+        .tab-btn.active {
+            background-color: #2c2825;
+            color: #f7f5f0;
+            border-color: #2c2825;
+        }
+
+        .accordion-content {
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        .accordion-content.open {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="antialiased leading-relaxed">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <header class="text-center mb-12">
+            <p class="text-sm tracking-widest text-[#8b7d6b] mb-4">астрономічний вісник • том іі • розвідки про незриме</p>
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 text-[#2c2825] leading-tight display-font">привиди всесвіту: <br> <span class="italic font-normal text-[#8b7d6b]">літопис ультрадифузних галактик</span></h1>
+            <div class="newspaper-border py-2 flex justify-between text-xs md:text-sm font-bold tracking-wider">
+                <span>видання спеціальне</span>
+                <span>автор: дослідник зоряних марев</span>
+                <span>ціна: увага читача</span>
+            </div>
+        </header>
+
+        <nav class="mb-12 sticky top-0 bg-[#f7f5f0] z-50 py-4 border-b border-[#8b7d6b]/30 flex flex-wrap gap-4 justify-center text-sm md:text-base font-bold">
+            <a href="#prologue" class="hover:text-[#8b7d6b] transition-colors">[ і. пролог ]</a>
+            <a href="#anatomy" class="hover:text-[#8b7d6b] transition-colors">[ іі. анатомія тіні ]</a>
+            <a href="#paradox" class="hover:text-[#8b7d6b] transition-colors">[ ііі. парадокс темряви ]</a>
+            <a href="#evolution" class="hover:text-[#8b7d6b] transition-colors">[ iv. дві стежки буття ]</a>
+            <a href="#glossary" class="hover:text-[#8b7d6b] transition-colors">[ v. глосарій ]</a>
+        </nav>
+
+        <main>
+            <section id="prologue" class="mb-20 scroll-mt-24">
+                <h2 class="text-3xl display-font font-bold mb-6 text-center">і. пролог: марева у німій безодні</h2>
+                <div class="text-[#8b7d6b] italic text-center mb-8 max-w-3xl mx-auto border-l-2 border-r-2 border-[#8b7d6b] px-4">
+                    у цій частині ми зануримося у саму суть космічної порожнечі, аби зрозуміти, як довго людське око залишалося сліпим до велетенських, проте невловних зоряних скупчень, що ховаються поруч із нами.
+                </div>
+                
+                <div class="columns-1 md:columns-2 gap-8 space-y-6 text-justify">
+                    <p class="first-letter-drop">німа безодня космосу ховає у своєму лоні дивовижні марева, що їх око людське донедавна й не зріло. коли ми зводимо погляд до нічного склепіння, наш зір шукає світла: сліпучих вогнищ зір, сріблястих річок галактичних рукавів, яскравих туманностей, де народжуються нові світила. проте всесвіт, у своїй безмежній іронії, створив сутності, які зневажають сю жагу до сяйва. се – ультрадифузні галактики, зоряні примари, розлиті по безмежжю, мов крапля молока у темному і холодному океані.</p>
+                    <p>вони величні, розмірами своїми дорівнюють нашому чумацькому шляху, простягаючись на десятки тисяч світлових літ. але при сій гігантській подобі вони прозорі та невагомі, наче подих осіннього вітру. зір у них настільки мало, і розкидані вони так далеко одна від одної, що крізь тіло такої галактики можна безперешкодно бачити далекі світи, що палають на тлі вічності. се парадокс природи: бути гігантським і водночас майже невидимим.</p>
+                    <p>довгі століття астрономи, озброєні склом і міддю своїх телескопів, прозирали крізь ці галактики, не помічаючи їх. вони шукали перлини, не бачачи найтоншого павутиння. лише у наші часи, коли розум людський вигострив свої інструменти до небувалої чутливості, ми змогли вловити їхнє тьмяне, ледь живе мерехтіння у сузір'ї волоса вероніки та в інших чорних закутках простору.</p>
+                    <p>се відкриття збентежило наукових мужів. позаяк класична механіка небесних тіл не передбачала існування таких роздутих, але бідних на матерію структур. як вони не розпалися на шматки під впливом гравітаційних бурхивих течій від сусідніх, більш масивних систем? що утримує сей розріджений зоряний пил укупі? відповіді на сі питання змушують нас переписувати саму азбуку світобудови.</p>
+                </div>
+            </section>
+
+            <section id="anatomy" class="mb-20 scroll-mt-24">
+                <div class="border-t border-[#2c2825] mb-12"></div>
+                <h2 class="text-3xl display-font font-bold mb-6 text-center">іі. анатомія тіні: міра речей</h2>
+                <div class="text-[#8b7d6b] italic text-center mb-8 max-w-3xl mx-auto border-l-2 border-r-2 border-[#8b7d6b] px-4">
+                    тут ми звернемося до мови чисел та пропорцій. нижче наведене порівняння дозволить вам на власні очі оцінити дисбаланс між колосальними розмірами ультрадифузних галактик та їхньою мізерною зоряною масою.
+                </div>
+
+                <p class="mb-8 text-justify">аби збагнути дивовижу цих марев, мусимо покласти їх на шальки космічних терезів. уявимо для порівняння наш рідний дім – чумацький шлях. се щільне, вируюче життям місто, де мільярди зір туляться одна до одної. а тепер візьмімо типову карликову галактику – таке собі маленьке, тьмяне сільце. ультрадифузна ж галактика бере розміри столичного мегаполіса, але населення в ній – як у тому загубленому сільці.</p>
+
+                <div class="bg-[#efebe2] p-6 rounded-sm shadow-inner mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-center">порівняльні характеристики обраних типів зоряних систем</h3>
+                    <p class="text-sm text-center mb-6 text-[#8b7d6b]">наведіть курсор на стовпці, аби прочитати приховані у них дані.</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="sizeMassChart"></canvas>
+                    </div>
+                </div>
+
+                <p class="text-justify mt-8">графік, що постав перед вашими очима, волає про аномалію. ефективний радіус – простір, де зібрана половина світла системи – у примар настільки ж розлогий, як у нашого зоряного дому. проте їхня маса, себто сумарна вага всіх зірок, у сотні, а то й тисячі разів менша. вони – немов мильна бульбашка: великі, але порожні всередині. сей дисбаланс породжує головне питання нашого дослідження: яка невидима рука оберігає ці тендітні структури від неминучого колапсу чи розриву?</p>
+            </section>
+
+            <section id="paradox" class="mb-20 scroll-mt-24">
+                <div class="border-t border-[#2c2825] mb-12"></div>
+                <h2 class="text-3xl display-font font-bold mb-6 text-center">ііі. парадокс темряви: два обличчя безодні</h2>
+                <div class="text-[#8b7d6b] italic text-center mb-8 max-w-3xl mx-auto border-l-2 border-r-2 border-[#8b7d6b] px-4">
+                    найбільша загадка криється у невидимому. цей розділ розкриває два полярні явища: галактики, що майже цілком складаються з темної матерії, та ті, що парадоксальним чином її позбавлені.
+                </div>
+
+                <p class="mb-8 text-justify">відповідь на питання про стійкість сих примар ховається у темряві. буквально. вчені мужі прийшли до висновку, що кістяком, який тримає ці розріджені зорі разом, є субстанція, що не випромінює і не відбиває світла. ім'я їй – темна матерія. але й тут всесвіт приготував для нас хитромудру загадку, розділивши ультрадифузні галактики на два табори, кожен з яких кидає виклик нашому розумінню.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+                    <div class="flex flex-col items-center">
+                        <h4 class="text-lg font-bold mb-2 text-center">бабка-44 (dragonfly 44)</h4>
+                        <p class="text-sm text-center text-[#8b7d6b] mb-4 h-12">галактика, де матерія темряви панує абсолютно. вона закутана в неї, наче у свинцевий панцир.</p>
+                        <div class="relative w-full max-w-[250px] aspect-square">
+                            <canvas id="dmHighChart"></canvas>
+                        </div>
+                        <p class="mt-4 text-xs text-center">99.9% маси невидимі для ока. зорі тут – лише жалюгідна меншість, випадковий пилок на велетенському незримому тілі.</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <h4 class="text-lg font-bold mb-2 text-center">ngc 1052-df2</h4>
+                        <p class="text-sm text-center text-[#8b7d6b] mb-4 h-12">галактика-єретик. вона поводиться так, ніби темної матерії у ній немає зовсім.</p>
+                        <div class="relative w-full max-w-[250px] aspect-square">
+                            <canvas id="dmLowChart"></canvas>
+                        </div>
+                        <p class="mt-4 text-xs text-center">астрономи не знайшли слідів незримого каркасу. як ця бульбашка досі не луснула – велика таємниця для науки сьогодення.</p>
+                    </div>
+                </div>
+
+                <p class="text-justify mt-10">се відкриття змусило мислителів здригнутися. якщо існують галактики без темної матерії, отже сія субстанція не є неодмінним атрибутом зоряного скупчення. вона може відриватися, жити своїм життям. се подібно до того, якби ви зустріли людину без тіні, а згодом – тінь, що блукає без людини. істина, захована у цих прозорих маревах, є фундаментальною для розуміння того, з якої глини зліплений наш світ.</p>
+            </section>
+
+            <section id="evolution" class="mb-20 scroll-mt-24">
+                <div class="border-t border-[#2c2825] mb-12"></div>
+                <h2 class="text-3xl display-font font-bold mb-6 text-center">iv. дві стежки буття: як народжуються привиди</h2>
+                <div class="text-[#8b7d6b] italic text-center mb-8 max-w-3xl mx-auto border-l-2 border-r-2 border-[#8b7d6b] px-4">
+                    у цьому інтерактивному розділі ми пропонуємо вам обрати та дослідити дві головні гіпотези, що намагаються пояснити генезис цих дивовижних структур. натискайте на назви теорій, аби відкрити їх суть.
+                </div>
+
+                <p class="mb-6 text-justify">звідки ж взялися сі туманні поторочі на сторінках космічного літопису? чи вони народилися такими з самого початку часів, чи якась жорстока фатум-доля роздерла їх на шмаття, перетворивши на тіні минулої величі? академічна спільнота розкололася на два табори, кожен з яких плекає свою теорію буття сих марев.</p>
+
+                <div class="mt-8 border border-[#2c2825] p-2 bg-[#efebe2]">
+                    <div class="flex flex-col sm:flex-row gap-2 mb-6">
+                        <button id="btn-theory-1" class="tab-btn active flex-1 py-3 px-4 border border-[#2c2825] text-center font-bold transition-all hover:bg-[#dcd8ce] focus:outline-none">
+                            теорія і: згаслі велетні
+                        </button>
+                        <button id="btn-theory-2" class="tab-btn flex-1 py-3 px-4 border border-[#2c2825] text-center font-bold transition-all hover:bg-[#dcd8ce] focus:outline-none text-[#2c2825]">
+                            теорія іі: розбурхані карлики
+                        </button>
+                    </div>
+
+                    <div id="content-theory-1" class="p-4 md:p-6 bg-[#f7f5f0] border border-t-0 border-[#2c2825] min-h-[300px]">
+                        <h3 class="text-2xl font-bold mb-4 display-font text-[#8b7d6b]">згаслі велетні: історія змарнованого потенціалу</h3>
+                        <p class="text-justify mb-4">сія гіпотеза промовляє до нас мовою трагедії. прихильники її стверджують, що ультрадифузні галактики мали стати велетами, рівними нашому чумацькому шляху. вони зародилися у величезних гало темної матерії, маючи всі задатки для того, аби запалити мільярди яскравих світил.</p>
+                        <p class="text-justify mb-4">проте якась космічна катастрофа – можливо, шалений вибух наднових у ранній період їхньої юності, або ж безжальний сонячний вітер – видула з них весь міжзоряний газ. газ – се кров галактики, будівельний матеріал для нових зірок. втративши його, се велике тіло зупинилося у розвитку. зорі перестали народжуватися.</p>
+                        <ul class="list-none pl-4 mt-4 space-y-2 border-l-2 border-[#8b7d6b]">
+                            <li class="relative before:content-['→'] before:absolute before:-left-4 before:text-[#8b7d6b]">це пояснює їхній велетенський розмір (каркас залишився великим).</li>
+                            <li class="relative before:content-['→'] before:absolute before:-left-4 before:text-[#8b7d6b]">це пояснює надмір темної матерії (вона нікуди не поділася, на відміну від газу).</li>
+                            <li class="relative before:content-['→'] before:absolute before:-left-4 before:text-[#8b7d6b]">вони – се застиглі пам'ятники тому, що могло б бути, але ніколи вже не станеться.</li>
+                        </ul>
+                    </div>
+
+                    <div id="content-theory-2" class="hidden p-4 md:p-6 bg-[#f7f5f0] border border-t-0 border-[#2c2825] min-h-[300px]">
+                        <h3 class="text-2xl font-bold mb-4 display-font text-[#8b7d6b]">розбурхані карлики: історія космічного насильства</h3>
+                        <p class="text-justify mb-4">друга гіпотеза не менш драматична. вона малює ультрадифузні галактики не як невдах королівської крові, а як звичайних селян-карликів, що зазнали жахливих тортур у жорнах всесвіту. себто від початку вони були маленькими та тьмяними галактиками.</p>
+                        <p class="text-justify mb-4">потрапивши у щільні скупчення інших галактик (наприклад, у гроно волоса вероніки), сі малюки стали жертвами гравітаційного роздирання. потужні припливні сили від масивних сусідів почали тягнути їх на всі боки, розтягуючи, мов тісто в руках пекаря. зорі віддалялися одна від одної, галактика "розпухала", стаючи дедалі розрідженішою та прозорішою.</p>
+                        <ul class="list-none pl-4 mt-4 space-y-2 border-l-2 border-[#8b7d6b]">
+                            <li class="relative before:content-['+'] before:absolute before:-left-4 before:text-[#8b7d6b]">це пояснює їхню крихкість та залежність від середовища.</li>
+                            <li class="relative before:content-['+'] before:absolute before:-left-4 before:text-[#8b7d6b]">це може пояснити нестачу темної матерії у деяких з них (гравітація сусідів відірвала її).</li>
+                            <li class="relative before:content-['+'] before:absolute before:-left-4 before:text-[#8b7d6b]">вони – се понівечені залишки маленьких світів, що намагаються вижити серед гігантів.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="glossary" class="mb-20 scroll-mt-24">
+                <div class="border-t border-[#2c2825] mb-12"></div>
+                <h2 class="text-3xl display-font font-bold mb-6 text-center">v. глосарій визначень для вдумливого читача</h2>
+                <div class="text-[#8b7d6b] italic text-center mb-8 max-w-3xl mx-auto border-l-2 border-r-2 border-[#8b7d6b] px-4">
+                    позаяк мудрість потребує точного слововживання, нижче наводимо розтлумачення термінів мудрованих, що траплялися у нашій оповіді. натискайте на термін, аби розкрити його сутність.
+                </div>
+
+                <div class="max-w-4xl mx-auto border border-[#2c2825]">
+                    
+                    <div class="border-b border-[#2c2825]">
+                        <button class="accordion-btn w-full text-left py-4 px-6 font-bold flex justify-between items-center hover:bg-[#efebe2] transition-colors focus:outline-none">
+                            <span>ультрадифузна галактика (udg)</span>
+                            <span class="transform transition-transform duration-300">↓</span>
+                        </button>
+                        <div class="accordion-content bg-[#f7f5f0] px-6 text-sm md:text-base text-justify">
+                            <div class="pb-4 text-[#5c5651]">
+                                галактика з надзвичайно низькою поверхневою яскравістю. її розміри (ефективний радіус) зіставні з розмірами великих спіральних галактик, але кількість зірок і сумарна світність відповідають карликовим галактикам. через це вони виглядають як напівпрозорі, примарні плями на знімках телескопів.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-[#2c2825]">
+                        <button class="accordion-btn w-full text-left py-4 px-6 font-bold flex justify-between items-center hover:bg-[#efebe2] transition-colors focus:outline-none">
+                            <span>темна матерія</span>
+                            <span class="transform transition-transform duration-300">↓</span>
+                        </button>
+                        <div class="accordion-content bg-[#f7f5f0] px-6 text-sm md:text-base text-justify">
+                            <div class="pb-4 text-[#5c5651]">
+                                гіпотетична форма матерії, яка не вступає в електромагнітну взаємодію (не випромінює і не поглинає світло), але має масу і виявляє себе через гравітаційний вплив на видиму матерію (зорі, газ). утримує більшість галактик від розпаду при швидкому обертанні.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-[#2c2825]">
+                        <button class="accordion-btn w-full text-left py-4 px-6 font-bold flex justify-between items-center hover:bg-[#efebe2] transition-colors focus:outline-none">
+                            <span>ефективний радіус</span>
+                            <span class="transform transition-transform duration-300">↓</span>
+                        </button>
+                        <div class="accordion-content bg-[#f7f5f0] px-6 text-sm md:text-base text-justify">
+                            <div class="pb-4 text-[#5c5651]">
+                                міра розміру галактики в астрономії. це радіус, у межах якого випромінюється половина всього світла галактики. використовується для порівняння просторової протяжності різних зоряних систем незалежно від їхньої загальної яскравості.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-[#2c2825]">
+                        <button class="accordion-btn w-full text-left py-4 px-6 font-bold flex justify-between items-center hover:bg-[#efebe2] transition-colors focus:outline-none">
+                            <span>гало (зоряне та темної матерії)</span>
+                            <span class="transform transition-transform duration-300">↓</span>
+                        </button>
+                        <div class="accordion-content bg-[#f7f5f0] px-6 text-sm md:text-base text-justify">
+                            <div class="pb-4 text-[#5c5651]">
+                                велетенська, сферична або злегка сплюснута оболонка, що оточує видиму частину галактики (її диск або ядро). зоряне гало містить розріджені старі зорі, тоді як гало темної матерії містить основну невидиму масу системи, що простягається далеко за межі видимих зірок.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button class="accordion-btn w-full text-left py-4 px-6 font-bold flex justify-between items-center hover:bg-[#efebe2] transition-colors focus:outline-none">
+                            <span>припливні сили (у космосі)</span>
+                            <span class="transform transition-transform duration-300">↓</span>
+                        </button>
+                        <div class="accordion-content bg-[#f7f5f0] px-6 text-sm md:text-base text-justify">
+                            <div class="pb-4 text-[#5c5651]">
+                                сили, що виникають через різницю гравітаційного тяжіння, яке діє на різні частини одного тіла з боку іншого, більш масивного тіла. у скупченнях галактик могутні галактики можуть своїми припливними силами деформувати, розтягувати та розривати менші галактики.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-20 pt-8 border-t-4 border-double border-[#2c2825] text-center text-sm text-[#8b7d6b] pb-10">
+            <p>написано для нащадків та шукачів істини.</p>
+            <p class="mt-2">усі права на зорі належать вічності.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // chart.js defaults for fonts & colors
+        Chart.defaults.font.family = "'pt serif', serif";
+        Chart.defaults.color = '#2c2825';
+        
+        // 1. bar chart: sizes and masses
+        const ctxBar = document.getElementById('sizeMassChart').getContext('2d');
+        const sizeMassChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['чумацький шлях (нормальна)', 'dragonfly 44 (ультрадифузна)', 'типова карликова'],
+                datasets: [
+                    {
+                        label: 'ефективний радіус (відносні одиниці)',
+                        data: [100, 95, 15],
+                        backgroundColor: '#546a76',
+                        borderColor: '#2c2825',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'зоряна маса (відносні одиниці)',
+                        data: [100, 1, 0.8],
+                        backgroundColor: '#8b7d6b',
+                        borderColor: '#2c2825',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 14 }
+                        }
+                    },
+                    tooltip: {
+                        titleFont: { family: "'lora', serif", size: 16 },
+                        bodyFont: { size: 14 },
+                        backgroundColor: 'rgba(44, 40, 37, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) { label += context.parsed.y + ' од.'; }
+                                return label.toLowerCase();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        type: 'logarithmic', // log scale because mass differs by 100x while size is similar
+                        title: {
+                            display: true,
+                            text: 'логарифмічна шкала (відносні величини)'
+                        },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return Number(value.toString()); // clear scientific notation
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            callback: function(val, index) {
+                                // wrap labels (16 char logic approximately, using array for multiple lines)
+                                const label = this.getLabelForValue(val);
+                                if(label.length > 16 && label.includes(' ')) {
+                                    return label.split(' ');
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. doughnut charts: dark matter paradox
+        const commonPieOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    titleFont: { family: "'lora', serif" },
+                    backgroundColor: 'rgba(44, 40, 37, 0.9)',
+                    callbacks: {
+                        label: function(context) {
+                            return context.label.toLowerCase() + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        };
+
+        const ctxDmHigh = document.getElementById('dmHighChart').getContext('2d');
+        new Chart(ctxDmHigh, {
+            type: 'doughnut',
+            data: {
+                labels: ['темна матерія', 'видима матерія (зорі/газ)'],
+                datasets: [{
+                    data: [99.9, 0.1],
+                    backgroundColor: ['#2c2825', '#efebe2'],
+                    borderColor: '#8b7d6b',
+                    borderWidth: 1
+                }]
+            },
+            options: commonPieOptions
+        });
+
+        const ctxDmLow = document.getElementById('dmLowChart').getContext('2d');
+        new Chart(ctxDmLow, {
+            type: 'doughnut',
+            data: {
+                labels: ['темна матерія', 'видима матерія (зорі/газ)'],
+                datasets: [{
+                    data: [1, 99],
+                    backgroundColor: ['#2c2825', '#efebe2'],
+                    borderColor: '#8b7d6b',
+                    borderWidth: 1
+                }]
+            },
+            options: commonPieOptions
+        });
+
+        // javascript logic for interactive elements
+
+        // tabs logic for evolutionary theories
+        const btn1 = document.getElementById('btn-theory-1');
+        const btn2 = document.getElementById('btn-theory-2');
+        const content1 = document.getElementById('content-theory-1');
+        const content2 = document.getElementById('content-theory-2');
+
+        function switchTab(activeBtn, inactiveBtn, activeContent, inactiveContent) {
+            // styles
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('text-[#2c2825]');
+            
+            inactiveBtn.classList.remove('active');
+            inactiveBtn.classList.add('text-[#2c2825]');
+            
+            // content visibility
+            inactiveContent.classList.add('hidden');
+            activeContent.classList.remove('hidden');
+            
+            // small animation effect by resetting opacity
+            activeContent.style.opacity = 0;
+            setTimeout(() => {
+                activeContent.style.transition = 'opacity 0.4s ease';
+                activeContent.style.opacity = 1;
+            }, 10);
+        }
+
+        btn1.addEventListener('click', () => switchTab(btn1, btn2, content1, content2));
+        btn2.addEventListener('click', () => switchTab(btn2, btn1, content2, content1));
+
+        // accordion logic for glossary
+        const accordionBtns = document.querySelectorAll('.accordion-btn');
+        accordionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const arrow = this.querySelector('span:last-child');
+                
+                // toggle open class
+                content.classList.toggle('open');
+                
+                // rotate arrow
+                if (content.classList.contains('open')) {
+                    arrow.style.transform = 'rotate(180deg)';
+                    this.classList.add('text-[#8b7d6b]');
+                } else {
+                    arrow.style.transform = 'rotate(0deg)';
+                    this.classList.remove('text-[#8b7d6b]');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
